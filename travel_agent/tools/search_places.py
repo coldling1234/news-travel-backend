@@ -8,7 +8,7 @@ from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 import requests
 
-from ..config import settings
+from config.settings import settings
 from ..amap_client import AmapClient, CATEGORY_CODES
 
 

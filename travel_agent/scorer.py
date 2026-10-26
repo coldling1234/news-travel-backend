@@ -9,7 +9,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.messages import SystemMessage, HumanMessage
 from pydantic import BaseModel, Field
 
-from .config import settings
+from config.settings import settings
 
 
 def _clamp(value: float, lo: float = 1.0, hi: float = 10.0) -> float:

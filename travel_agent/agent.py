@@ -5,7 +5,7 @@ from datetime import date
 from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
 
-from .config import settings
+from config.settings import settings
 from .pii_masking import PIIMaskingHandler
 from .tools import (
     collect_preferences,

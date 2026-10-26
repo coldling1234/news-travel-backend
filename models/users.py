@@ -1,15 +1,21 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import Mapped, mapped_column
+
+from models.base import Base, TimestampMixin
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-class User(Base):
+class User(TimestampMixin, Base):
     """
     用户信息表
     ORM 模型
@@ -17,10 +23,13 @@ class User(Base):
 
     __tablename__ = "user"
 
-    # 创建索引
+    # 唯一约束用命名 UniqueConstraint 表达，而不是列级 unique=True：
+    # 列级 unique=True 会让 SQLAlchemy 额外生成一个以列名命名的唯一索引，
+    # 与下面这个重名索引并存，白白多出一份冗余索引。
+    # 命名保持 username_UNIQUE / phone_UNIQUE，与现有库完全一致。
     __table_args__ = (
-        Index("username_UNIQUE", "username"),
-        Index("phone_UNIQUE", "phone"),
+        UniqueConstraint("username", name="username_UNIQUE"),
+        UniqueConstraint("phone", name="phone_UNIQUE"),
     )
 
     id: Mapped[int] = mapped_column(
@@ -31,7 +40,6 @@ class User(Base):
     )
     username: Mapped[str] = mapped_column(
         String(50),
-        unique=True,
         nullable=False,
         comment="用户名",
     )
@@ -61,20 +69,11 @@ class User(Base):
     )
     phone: Mapped[Optional[str]] = mapped_column(
         String(20),
-        unique=True,
         comment="手机号",
     )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now(),
-        comment="创建时间",
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now(),
-        onupdate=datetime.now(),
-        comment="更新时间",
-    )
+    # created_at / updated_at 由 TimestampMixin 提供。
+    # 原先此处写的是 default=datetime.now()（带括号），会在模块导入时求值一次，
+    # 导致所有用户共用同一个时间戳，且 onupdate 永久失效。已修正为 mixin 的写法。
 
     def __repr__(self):
         return (
@@ -93,7 +92,7 @@ class UserToken(Base):
 
     # 创建索引
     __table_args__ = (
-        Index("token_UNIQUE", "token"),
+        UniqueConstraint("token", name="token_UNIQUE"),
         Index("fk_user_token_user_idx", "user_id"),
     )
 
@@ -111,7 +110,6 @@ class UserToken(Base):
     )
     token: Mapped[str] = mapped_column(
         String(255),
-        unique=True,
         nullable=False,
         comment="令牌值",
     )

@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 
 import requests
 
-from .config import settings
+from config.settings import settings
 
 
 BASE_URL = "https://restapi.amap.com/v3"

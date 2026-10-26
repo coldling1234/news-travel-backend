@@ -7,6 +7,7 @@ from models.users import User
 from schemas.users import UserRequest
 from crud import users
 from utils.auth import get_current_user
+from utils.security import create_access_token
 
 router = APIRouter(prefix="/api/user", tags=["users"])
 
@@ -18,10 +19,10 @@ async def register(user_data:UserRequest,db:AsyncSession = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="用户已存在")
     user = await users.create_user(db, user_data)
-    token = await users.create_token(db, user.id)
+    token = create_access_token(user.id)
     return {
         "code": 200,
-        "message": "登录成功",
+        "message": "注册成功",
         "data": {
             "token": token,
             "userInfo": {
@@ -40,7 +41,7 @@ async def login(user_data:UserRequest,db:AsyncSession = Depends(get_db)):
     user = await users.authenticate_user(db, user_data.username, user_data.password)
     if not user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="用户名或密码错误")
-    token = await users.create_token(db, user.id)
+    token = create_access_token(user.id)
     return {
         "code": 200,
         "message": "登录成功",
@@ -56,19 +57,19 @@ async def login(user_data:UserRequest,db:AsyncSession = Depends(get_db)):
         }
     }
 
-# @router.get("/info")
-# async def get_user_info(user:User = Depends(get_current_user)):
-#
-#     return {
-#         "code": 200,
-#         "message": "登录成功",
-#         "data": {
-#             "userInfo": {
-#                 "id": user.id,
-#                 "username": user.username,
-#                 "nickname": user.nickname,
-#                 "avatar": user.avatar,
-#                 "bio": user.bio
-#             }
-#         }
-#     }
+@router.get("/info")
+async def get_user_info(user:User = Depends(get_current_user)):
+
+    return {
+        "code": 200,
+        "message": "获取用户信息成功",
+        "data": {
+            "userInfo": {
+                "id": user.id,
+                "username": user.username,
+                "nickname": user.nickname,
+                "avatar": user.avatar,
+                "bio": user.bio
+            }
+        }
+    }

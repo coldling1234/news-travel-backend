@@ -12,7 +12,7 @@ from typing import Any, Optional
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
-from ..config import settings
+from config.settings import settings
 from ..amap_client import AmapClient
 from ..models.preference import TravelPreference
 
